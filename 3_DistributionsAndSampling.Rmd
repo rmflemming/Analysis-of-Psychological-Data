@@ -1,0 +1,194 @@
+---
+title: 'PSY 8814: Assignment 3'
+author: "Rory Flemming"
+date: "October 5, 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+library(ggplot2)
+library(gridExtra)
+knitr::opts_chunk$set(echo = TRUE,tidy=TRUE,tidy.opts=list(width.cutoff=80))
+
+```
+
+## Exercise 3.1 
+### (a)  
+Assuming that a coin is fair, what is the probability that someone will flip 4 or fewer heads in 10 tosses? Use the binomial distribution to find the exact probability.
+```{r, binom_coinflip10}
+# Get the binomial density for each possible value of heads out of 10 flips
+b_coinflip10 = dbinom(0:10,10,.5) 
+b_4heads = sum(b_coinflip10[1:5]) # sum the densities for 0-4 heads
+b_4heads # report value
+```
+
+The probability that a fair coin will give four or less heads in 10 tosses is `r b_4heads`.  
+
+### (b)  
+Repeat the previous part, but use the normal distribution to estimate the probability. How does the estimated probability compare with the exact probability for a sample size of n = 10?  
+
+```{r, norm_coinflip10}
+# Get the normal approximation of the binomial distribution for the coin tosses
+n_coinflip10 = dnorm(0:10,mean = 5,sd = sqrt(10*.5*(1-.5)))
+n_4heads = sum(n_coinflip10[1:5]) # sum the densities for 0-4heads
+n_4heads # report the value
+
+pcterr_10 = 100*(n_4heads - b_4heads)/b_4heads
+pcterr_10
+```
+The normal approximation that a fair coin will give four or less heads in 10 tosses is `r n_4heads`. This value is quite close to the true probability, even with a sample size of 10. The error is `r pcterr_10`% of the true value.  
+
+### (c)  
+Assuming that a coin is fair, what is the probability that someone will flip 40 or fewer heads in 100 tosses? Find the exact probability using the binomial distribution and the estimated probability using the normal distribution. Does the normal approximation improve when increasing the number of tosses?  
+```{r, both_coinflip100}
+# Get the binomial density for each possible value of heads out of 100 flips
+b_coinflip100 = dbinom(0:100,100,.5) 
+b_40heads = sum(b_coinflip100[1:41]) # sum the densities for 0-40 heads
+b_40heads # report value
+
+# Get the normal approximation of the binomial distribution for the coin tosses
+n_coinflip100 = dnorm(0:100,mean = 50,sd = sqrt(100*.5*(1-.5)))
+n_40heads = sum(n_coinflip100[1:41]) # sum the densities for 0-40 heads
+n_40heads # report the value
+
+pcterr_100 = 100*(n_40heads - b_40heads) / b_40heads
+pcterr_100 # report error
+```
+The normal approximation is `r pcterr_100`% off when the number of samples is increased. This is would make it appear that the normal approximaiton of the binomial distribution *improves* with the number of samples.  
+
+### (d)  
+Assume that a magician can flip a coin such that it turns up heads exactly 90% of the time, although coin flips (as always) are independent. You are interested in modeling the number of heads (Y) in a sequence of n coin flips. Using R, try to find an n such that the normal distribution is a good approximation to the binomial distribution for this particular question.
+```{r norm_approxp90}
+# I will find the lowest n, such that the normal distribution approximates the binomial with <0.0001 Mean-Squared Error. I am assuming that error decreases with increasing n.
+
+# Let's define a function, find_norm(), to do this. It will take inputs:  
+#   p ~ probability of success (heads) ; 
+#   mse ~ the desired mean-square error criteria for stopping ; 
+#   n_range ~ a vector containing two integers. the n (number of samples) to start and stop at.
+
+find_norm <-function(p,mse,n_range){
+  for (n in n_range[1]:n_range[2]){
+    # Get the binomial density for each possible value of heads out of n flips
+    b_coinflipN = dbinom(0:n,n,p) 
+
+    # Get the normal approximation of the binomial distribution
+    n_coinflipN = dnorm(0:n,mean = p*n,sd = sqrt(n*p*(1-p)))
+  
+    # Calcuate mean-squared error
+    pcterr_n = sum((n_coinflipN - b_coinflipN)^2)/n
+    if (abs(pcterr_n) < 0.0001){
+      nsamples = n
+      break
+    }
+  }
+  return(nsamples) # lowest number of samples to get MSE < mse.
+}
+# Initialize values for this particular problem:
+p = .9
+mse=0.0001
+n_range=c(5,100)
+# Now we apply the function
+nsamples90 = find_norm(p,mse,n_range)
+nsamples90 # report the result!
+
+```
+To get a MSE < `r mse` for p = `r p`, a sample size of n = `r nsamples90` was required.  
+
+### (e)  
+Repeat the previous problem, only assume that the magician can flip heads exactly 99% of the time. How does the probability of success (p) relate to the number of tosses (n) needed for the normal distribution to adequately approximate binomial probabilities?  
+```{r norm_approxp99}
+# We will just apply the same function and change p to 0.99
+p = 0.99
+nsamples99 = find_norm(p,mse,n_range)
+nsamples99 
+```
+To get a MSE < `r mse` for p = `r p`, a sample size of n = `r nsamples99` was required. This would suggest that as p approaches a boundary {0,1}, the number of tosses (n) needed for the normal distribution to adequately approximate binomial probabilities *decreases*.  
+
+
+## Exercise 3.2  
+Let *Xhat* denote the sample mean of a random sample of N = 10 independent draws from a normal distribution with a mean of $\mu$ and a variance of $\sigma$^2^.  
+
+### (a)  
+If $\mu$ = 0 and $\sigma$^2^ = 7, what is the probability that *Xhat* will be between -????1 and 1?  
+```{r xhat_pm1}
+# Init
+mu = 0
+sigma = sqrt(7)
+N = 10
+sd_hat = sigma/sqrt(N)
+
+# calculate the density between -1 and 1
+p_xhat_pm1 = pnorm(1,mu,sd_hat) - pnorm(-1,mu,sd_hat) 
+p_xhat_pm1 # report
+```
+The probability that *Xhat* will be between -1 and 1 is `r p_xhat_pm1`.  
+
+### (b)  
+If $\mu$ = 5 and $\sigma$^2^ = 30, what is the probability that *Xhat* will be less than 7?  
+```{r xhat_l7}
+# Init
+mu = 5
+sigma = sqrt(30)
+sd_hat = sigma/sqrt(N)
+p_xhat_l7 = pnorm(7,mu,sd_hat) # density below 7
+p_xhat_l7 # report
+```
+The probability that *Xhat* will be lessthan 7 is `r p_xhat_l7`.  
+
+## Exercise 3.3  
+Try to find the sample size (N) such that the sampling distribution of the sample mean (*Xhat*) is approximately normally distributed. You will need to use for loops (see the lab notes on sampling distributions) in your simulation and use qqplot to provide evidence of normality. Also include histograms of the original distribution for comparison. (I.e., histograms of many, many realizations from the original distributions - for example, n = 10000.)  
+X is sampled from the exponential distribution (`rexp`) with $\lambda$ (the rate parameter) equal to 2. (You can try sample size of 5, 20, 100 and 500. Please use 1000 replications for each sample size.)  
+```{r norm_sample}
+# Let's first look at the population distribution, X
+popn_reps = 10000 # for drawing the population distribution
+lambda = 2 # rate
+set.seed(42) # for consistency
+X = rexp(popn_reps, lambda)
+ggplot(data.frame(X), aes(x=X)) + geom_histogram(bins = 30) + geom_vline(data=data.frame(X), aes(xintercept=mean(X)))+ theme_minimal()
+
+# Now, we will try to find a sample size (N) yileding a normal sample distribution of the sample mean, Xhat
+# It will take args:
+#   n_samples ~ a vector of sample sizes to try
+#   reps ~ number of for each sample size
+find_norm_xhat <-function(lamba,n_samples, reps){
+  Xhats = matrix(data=NA,nrow = reps,ncol = length(n_samples)) #init output matrix
+  i=0
+  for (N in n_samples){
+    i=i+1
+    for (r in 1:reps){
+      Xhats[r,i]= mean(rexp(N,rate=lambda))
+    }
+  }
+  return(Xhats)
+}
+
+n_samples = c(5,20,100,500) # suggested sample sizes
+reps = 1000 # number of replications per sample size
+Xhats = find_norm_xhat(lambda,n_samples,reps)
+Xhats = data.frame(Xhats)
+
+# Let's plot histograms of each of these:
+h1 <- ggplot(Xhats, aes(x=Xhats[,1])) + geom_histogram(bins=30) +
+  geom_vline(data=Xhats, aes(xintercept=mean(Xhats[,1]))) +
+  xlab("Xhat") + labs(title="N = 5") + theme_minimal()
+h2 <- ggplot(Xhats, aes(x=Xhats[,2])) + geom_histogram(bins=30) +
+  geom_vline(data=Xhats, aes(xintercept=mean(Xhats[,2]))) +
+  xlab("Xhat") + labs(title="N = 20") + theme_minimal()
+h3 <- ggplot(Xhats, aes(x=Xhats[,3])) + geom_histogram(bins=30) +
+  geom_vline(data=Xhats, aes(xintercept=mean(Xhats[,3]))) +
+  xlab("Xhat") + labs(title="N = 100") + theme_minimal()
+h4 <- ggplot(Xhats, aes(x=Xhats[,4])) + geom_histogram(bins=30) +
+  geom_vline(data=Xhats, aes(xintercept=mean(Xhats[,4]))) +
+  xlab("Xhat") + labs(title="N = 500") + theme_minimal()
+grid.arrange(h1,h2,h3,h4,ncol=2)
+
+# Next, we will do the q-q plots
+q1 <- ggplot(Xhats, aes(sample=Xhats[,1])) + labs(title="N = 5") + stat_qq() + stat_qq_line() + theme_minimal()
+q2 <- ggplot(Xhats, aes(sample=Xhats[,2])) + labs(title="N = 20") + stat_qq() + stat_qq_line() + theme_minimal()
+q3 <- ggplot(Xhats, aes(sample=Xhats[,3])) + labs(title="N = 100") + stat_qq() + stat_qq_line() + theme_minimal()
+q4 <- ggplot(Xhats, aes(sample=Xhats[,4])) + labs(title="N = 500") + stat_qq() + stat_qq_line() + theme_minimal()
+grid.arrange(q1,q2,q3,q4,ncol=2)
+```
+
+Accoding to these plots, it looks like it could at least about 100 samples if not more to get an approximately normal distribution of sample means from the exponential distribution. Running this a few times with random X distributions, sometimes even 100 would look right-skewed (non-normal).

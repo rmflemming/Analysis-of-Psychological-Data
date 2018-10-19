@@ -1,0 +1,72 @@
+---
+title: "PSY 8814 - Assignment 4"
+author: "Rory Flemming"
+date: "October 11, 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+## Exercise 4.1  
+Jim was interested in anxiety in a particular population with a standard deviation of $\sigma$ = 6 on a well-known anxiety scale. The N = 9 individuals had the following scores: 36, 27, 30, 33, 22, 30, 30, 24, 38. Construct a 95% confidence interval using R.  
+```{r E4.1}
+# Init values
+sd = 6 # population sd
+N = 9 # sample size
+scores = c(36, 27, 30, 33, 22, 30, 30, 24, 38) # our sample data
+alpha = .05 # value under tails outside of confidence interval
+
+# calculate sample statistics
+xhat = mean(scores) # sample mean
+sdhat = sd/sqrt(N) # standard error
+
+# Calculate the interval boundaries
+low_bound = xhat + qnorm(alpha/2) * sdhat
+high_bound = xhat + qnorm(1 - alpha/2) * sdhat
+
+CI = c(low_bound,high_bound)
+CI
+```
+The 95% confidence interval is between ``[`r CI[1]`,`r CI[2]`]``.  
+
+## Exercise 4.2  
+Based on the same population standard deviation and sample as in Exercise 4.1 , please use R to construct a 80% confidence interval.  
+```{r E4.2}
+alpha = .2 # new alpha
+# Calculate the interval boundaries
+low_bound = xhat + qnorm(alpha/2) * sdhat
+high_bound = xhat + qnorm(1 - alpha/2) * sdhat
+
+CI = c(low_bound,high_bound)
+CI
+
+```
+The 80% confidence interval is between ``[`r CI[1]`,`r CI[2]`]``.  
+
+## Exercise 4.3  
+Please compare between the results you get from Exercise 4.1 and Exercise 4.2, then draw a conclusion on the relationship between confidence level and the width of confidence interval.  
+
+**Answer:** Higher levels of confidence result in tighter bounds on the interval.  
+
+## Exercise 4.4  
+Based on the same population standard deviation and sample as in Exercise 4.1, is it *likely* that this sample is draw from a population with mean $\mu$ = 22? Please use $\alpha$ = 0.05. Please explain your answer.
+```{r E4.4}
+#Init variables
+mu = 22
+alpha = .05
+
+# Construct the 1-alpha CI for the population distribution with mu =22
+H0_low_bound = mu + pnorm(alpha/2,mu,sd)*sd
+H0_high_bound = mu + pnorm(1-alpha/2,mu,sd)*sd
+
+if ((xhat<H0_low_bound) || (xhat>H0_high_bound)){
+  likely = FALSE
+}  else{
+  likely = TRUE
+}
+likely
+```
+Constructing the null hypothesis distribution and using $\alpha$ = 0.05 as the criterion, I would asses the statement: "it is likely that this sample is drawn from a popilation with mean, $\mu$ = 22" as `r likely`.

@@ -1,0 +1,100 @@
+---
+title: "PSY 8814 - Assignment 2"
+author: "Rory Flemming"
+date: "September 28, 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+require(ggplot2)
+require(MASS)
+require(dplyr)
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Exercise 2.1  
+This question uses the `diamonds` dataset in `ggplot2`. So we will start with importing `ggplot` and gettiing quick look at the data:
+```{r diamonds_summary}
+# Look at data summary
+data = diamonds
+summary(diamonds)
+```
+
+### (a,b)
+```{r diamonds_scatter}
+#Plot relationship of carat-price with color to indicate the color quality of the diamond
+ppc <- ggplot(diamonds, aes(x =carat, y =price, color = color)) +
+  geom_point() +
+  ggtitle("Round Cut Diamonds: Price by Carat") +
+  xlab("Carat") +
+  ylab("Price (USD)") +
+  coord_cartesian(
+    xlim = c(0, 5.2),
+    ylim = c(min(diamonds$price), max(diamonds$price))
+  )
+ppc
+
+```
+
+### (c)  
+```{r diamonds_clarity}
+# Split Carat-Price by clarity
+ppc + facet_wrap(vars(diamonds$clarity),nrow=2)
+```
+
+### (d)  
+Generally, higher carat diamonds are higher price. Diamonds with better color and clarity have steeper price curves than ones with worse color or worse clarity.  
+  
+## Exercise 2.2  
+```{r cabbages_summary}
+# Look at data summary
+data2 = cabbages
+summary(data2)
+```
+
+### (a)  
+``` {r cabbage_head_scatter}
+# Plot relationship between HeadWt, VitC
+chw <- ggplot(data2, aes(x = HeadWt, y = VitC)) +
+  geom_point() +
+  ggtitle("Cabbage Head wt vs Vit C") +
+  xlab("Head Weight (kg)") +
+  ylab("Vitamin C (units)")
+chw +
+  geom_hline(yintercept=mean(data2$VitC)) + 
+  geom_vline(xintercept=mean(data2$HeadWt)) # Add lines for means
+```
+
+### (b)  
+```{r cult_cabbage_plots}
+# Split HeadWt-VitC plots for cultivar level
+chw+facet_wrap(vars(data2$Cult),nrow=1)
+```
+  
+### (c)  
+```{r cult_headwt_rel, echo=TRUE}
+#Subset by cultivar and take the means
+c52 = subset(data2,as.character(data2$Cult) == 'c52');
+mc52 = mean(c52$HeadWt)
+c39 = subset(data2,as.character(data2$Cult) == 'c39');
+mc39 = mean(c39$HeadWt)
+p_c39gmc52 = nrow(filter(c39,c39$HeadWt>mc52))/nrow(c39)
+# Proportion of c39 w/ hw > mean(hw(c52))
+p_c39gmc52
+#Proportion of all w/ hw b/w the means
+p_between = nrow(filter(data2,(data2$HeadWt > mc52) & (data2$HeadWt < mc39)))/nrow(data2)
+p_between
+
+```
+The proportion of `HeadWt` values from `c39` cabbages that fall above the mean `HeadWt` values from `c52` cabbages is `r p_c39gmc52`. The proportion of all `HeadWt` values that fall between to the means of  `HeadWt` values of the two cultivar levels is `r p_between`.
+  
+### (d)  
+```{r cabbage_date_mod}
+# Plot HeadWt-VitC with color to indicate planting date
+ggplot(data2, aes(x=HeadWt,y=VitC,color=Date)) +
+  geom_point() +
+  ggtitle("Cabbage Head wt vs Vit C") +
+  xlab("Head Weight (kg)") +
+  ylab("Vitamin C (units)") +
+  theme_minimal()
+```

@@ -1,0 +1,234 @@
+---
+title: "Assignment 1"
+author: "Rory Flemming"
+date: "September 14, 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Exercise 1.1  
+Using anorexia data from the MASS package:  
+```{r}
+require('MASS')
+names(anorexia)
+levels(anorexia$Treat)
+typeof(anorexia$Treat)
+typeof(anorexia$Prewt)
+typeof(anorexia$Postwt)
+```
+### (a)  
+We see from the description that anorexia is a 72x3 data frame. It contains data relevant to the weight changes of young, female anorexia patients in different treatment conditions. The columns are:  
+`Treat`: The treatment condition, three levels. "`Contr`" (Control), "`CBT`" (Cognitive Behavioral treatment), "`FT`" (family treatment). These are likely factors, since they appear as a string, but have integer types.  
+`Prewt`: Patient weight (lbs.) at the beginning of study period. This is a postive, real number (as a double).  
+`Postwt`: Patient weight (lbs.) at the end of the study period. This is a positive, real number (as a double.  
+  
+### (b)  
+```{r}
+mean(anorexia$Prewt)
+sd(anorexia$Prewt)
+mean(anorexia$Postwt)
+sd(anorexia$Postwt)
+
+```
+  
+### (c)  
+```{r}
+boxplot(anorexia[,2:3])
+```
+
+The above plot shows us that almost all quantile values, except for maybe the second quartile, have increased from pre- to post-study. This supports the intuition from the means, that on average, the patient population gained weight over the study.  
+  
+### (d)  
+```{r}
+ft = subset(anorexia, anorexia$Treat == 'FT')
+ft = ft[c('Prewt','Postwt')]
+```
+  
+### (e)  
+```{r}
+Postwt = anorexia$Postwt
+mPwt = mean(Postwt)
+N = length(Postwt)
+numer = sum((Postwt - mPwt)^3) / N
+denom = (sum((Postwt - mPwt)^2) / N)^(3/2)
+skewPostwt = numer / denom
+skewPostwt
+corxion = sqrt(N*(N-1))/(N-2)
+corrctSkewPostwt = corxion*skewPostwt
+corrctSkewPostwt
+```
+### (f)  
+```{r}
+require(e1071)
+skewness(Postwt,type=1)
+skewness(Postwt,type=2)
+skewness(Postwt,type=3)
+```
+`type=1` and `type=2` correspond to the uncorrected and corrected formulas in lecture, respectively.  
+  
+###(g)  
+```{r}
+mean(ft$Prewt)
+sd(ft$Postwt)
+mean(ft$Postwt)
+sd(ft$Postwt)
+hist(ft$Prewt)
+hist(ft$Postwt)
+t.test(ft$Postwt,ft$Prewt)
+boxplot(ft)
+```
+
+## Exercise 1.2  
+```{r}
+www = 'http://www.uvm.edu/~dhowell/methods8/DataFiles/Add.dat'
+ADD = read.table(www, header=1)
+```
+### (a)  
+```{r}
+N = nrow(ADD)
+N_g60 = nrow(subset(ADD,ADD$ADDSC >=60))
+P_g60 = N_g60/N
+P_g60
+```
+The probability that a randomly selected person has an ADDSC score greater than or equal to 60 is `r P_g60`.  
+### (b)  
+```{r}
+N_drop = nrow(subset(ADD,ADD$Dropout == 1))
+P_drop = N_drop/N
+P_drop
+```
+The probability that a randomly selected person dropped out of school is `r P_drop`.  
+### (c)  
+```{r}
+dropouts = subset(ADD,ADD$Dropout==1)
+drop_g60 = subset(dropouts,dropouts$ADDSC >=60)
+sens_SC_drop = nrow(drop_g60)/nrow(dropouts)
+sens_SC_drop
+```
+The proportion of dropouts with an ADDSC of 60 or greater is `r sens_SC_drop`.  
+### (d)  
+```{r}
+nondrop = subset(ADD,ADD$Dropout == 0)
+ndrop_l60 = subset(nondrop,nondrop$ADDSC < 60)
+spec_SC_drop = nrow(ndrop_l60)/nrow(nondrop)
+spec_SC_drop
+```
+The proportion of non-dropouts with an ADDSC less than 60 is `r spec_SC_drop`.  
+### (e)  
+```{r}
+P_ndrop_g60 = (1-P_drop)*(1-spec_SC_drop)/P_g60
+P_ndrop_g60
+```
+The percentage of misclassified students (nondropouts with ADD scores >=60) is `r P_ndrop_g60`.  
+### (f)  
+```{r}
+n_ndrop_g60x = nrow(subset(nondrop,nondrop$ADDSC >= 60))
+p_ndrop_g60 = (n_ndrop_g60x / nrow(ADD))/P_g60
+p_ndrop_g60
+```
+### (g)  
+Misdiagnoneses occur because the nondropout population is so much larger than the drop out population. The threshold score of 60 is within bounds that enough non-drop out population (~13%) get caught in that range with the benefit of higher sensitivity to dropouts (70%).  
+  
+## Exercise 1.3  
+### (a)  
+```{r}
+lb_IQ1 = mean(ADD$IQ) - sd(ADD$IQ)
+hb_IQ1 = mean(ADD$IQ) + sd(ADD$IQ)
+n_low1 = nrow(subset(ADD,ADD$IQ < lb_IQ1))
+n_high1 = nrow(subset(ADD,ADD$IQ > hb_IQ1))
+P_sd1 = (nrow(ADD) - n_low1 - n_high1)/nrow(ADD)
+P_sd1
+
+lb_IQ2 = mean(ADD$IQ) - 2*sd(ADD$IQ)
+hb_IQ2 = mean(ADD$IQ) + 2*sd(ADD$IQ)
+n_low2 = nrow(subset(ADD,ADD$IQ < lb_IQ2))
+n_high2 = nrow(subset(ADD,ADD$IQ > hb_IQ2))
+
+P_sd2 = (nrow(ADD) - n_low2 - n_high2)/nrow(ADD)
+P_sd2
+
+```
+The percent of IQ scores within 1 and 2 standard deviations from the mean are `r P_sd1` and `r P_sd2`, respectively.  
+  
+###(b)  
+The above percentages are near the same as for a normal distribution (.682, .954).  
+  
+### (c)  
+```{r}
+hist(ADD$IQ,15)
+```
+  
+```{r}
+set.seed(42)
+norm_sample <-rnorm(1000)
+hist(norm_sample,15)
+```
+
+It appears that the IQ scores appear to be somewhat skewed right, with more values on the mid-lower end than a normal distribution.  
+  
+### (d)
+```{r}
+qqnorm(ADD$IQ)
+qqline(ADD$IQ)
+```
+Looking at the QQ plot, you can see that the IQ dataset is a little more right-skewed than a normal distribution. However, it's not very far off.  
+
+## Exercise 1.4  
+### (a)  
+The `cats` dataset in the `MASS` package is a 144x3 dataset, including sex (`Sex`, M or F), bodyweight (`Bwt`, kilograms) and heart weight (`Hwt`, grams) of a set of adult cats (>2kg).  
+
+### (b)  
+Statistical summary of body weight:  
+```{r}
+mean(cats$Bwt)
+sd(cats$Bwt)
+skewness(cats$Bwt,type=2)
+kurtosis(cats$Bwt,Fasle,type=2)
+```
+  
+Statistical summary of heart weight:  
+```{r}
+mean(cats$Hwt)
+sd(cats$Hwt)
+skewness(cats$Hwt,type=2)
+kurtosis(cats$Hwt,Fasle,type=2)
+```
+  
+### (c)  
+Comparison of Male (1) and female (2) cats' bodyweights:
+```{r}
+fcats = subset(cats,cats$Sex == 'F'); fcats = fcats[,2:3]
+mcats = subset(cats,cats$Sex == 'M'); mcats = mcats[,2:3]
+boxplot(mcats[,1],fcats[,1])
+```
+  
+  Comparison of Male (1) and Female (2) cats' heart weights:  
+```{r}
+  boxplot(mcats[,2], fcats[,2])
+```
+
+### (d)  
+P(heart weight >= 10 | Female) = ...
+```{r}
+cats_g10 = subset(cats,cats$Hwt >= 10)
+fcats_g10 = subset(cats_g10,cats_g10$Sex == 'F')
+p_f_and_g10 = nrow(fcats_g10)/nrow(cats)
+p_f = nrow(fcats)/nrow(cats)
+p_g10_f = p_f_and_g10 / p_f
+p_g10_f
+```
+  
+The probability of a cat's heart weight being greater than or equal to ten grams given that it is a female is `r p_g10_f`.  
+  
+### (e)  
+P(Female | heart weight >= 10)
+```{r}
+p_g10 =  nrow(subset(cats,cats$Hwt >=10))/nrow(cats)
+p_f_given_g10 = p_f_and_g10 / p_g10
+p_f_given_g10
+```
+
+The probability of  a cat being female, given its heart weight is greater than or equal to 10 is `r p_f_given_g10`.
