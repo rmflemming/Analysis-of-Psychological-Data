@@ -1,30 +1,32 @@
 ---
 title: "PSY 8814 Assignment 5"
 author: "Rory Flemming"
-date: "October 19, 2018"
-output: html_document
+date: "October 21, 2018"
+output:
+  word_document: default
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-require(ggplot2)
+require(ggplot2);
 ```
-
 ## Exercise 5.1  
-Jim was interested in testing whether an expensive treatment affected anxiety in a particular population with a mean of $\mu = 22$ and a standard deviation of $\sigma = 6$ on a well-known anxiety scale. After collecting N = 9 individuals, he administered the treatment to each of them, and following treatment, gathered their scores on the anxiety scale. The N = 9 individuals had the following scores on the anxiety scale following
-treatment: 36, 27, 30, 33, 22, 30, 30, 24, 38. Test the research hypothesis that the group who were given the treatment had different scores on the anxiety scale (on average) than the general population. Perform the test using $\alpha = 0.05$. Make sure to check for normality and outliers using graphical and/or numerical methods.  
+Jim was interested in testing whether an expensive treatment affected anxiety in a particular population with a mean of $\mu = 22$ and a standard deviation of $\sigma = 6$ on a well-known anxiety scale. After collecting $N = 9$ individuals, he administered the treatment to each of them, and following treatment, gathered their scores on the anxiety scale. The $N = 9$ individuals had the following scores on the anxiety scale following
+treatment: $36, 27, 30, 33, 22, 30, 30, 24, 38$. Test the research hypothesis that the group who were given the treatment had different scores on the anxiety scale (on average) than the general population. Perform the test using $\alpha = 0.05$. Make sure to check for normality and outliers using graphical and/or numerical methods.  
 
-```{r Ex_5p1}
-set.seed(8814.4) # set seed for replicability
-
+```{r NHST}
 # inits
-mu = 22; sd = 6;
+mu = 22;
+sd = 6;
 N = 9;
 x = c(36, 27, 30, 33, 22, 30, 30, 24, 38);
 alpha = .05;
 
 # Calculate sample statistics
-xhat = mean(x); sdhat = sd/sqrt(N);
+xhat = mean(x);
+sdhat = sd/sqrt(N);
 
 # Look at the Normality
 ggplot(data.frame(x),aes(sample=x)) + stat_qq() + stat_qq_line() + theme_minimal()
@@ -47,15 +49,16 @@ H0_high = mu + pnorm(1-gamma)*sdhat;
 # Another way is to get the p-value associated with it's z-score
 z = (xhat - mu)/sdhat;
 pvalue = 1-pnorm(z) # the p-value of sample mean under the null
+pvalue
 ```
 
-Using NHST, we would reject the null hypothesis, $\mu_0 = 5$ given the data, $\alpha = 0.05$, and the resulting p =`r pvalue`.  
+**Using NHST, we would reject the null hypothesis, $\mu_0 = 22$ given the data, $\alpha = 0.05$, and the resulting p-value, `r pvalue`.**  
 
 ## Exercise 5.2  
 A researcher has developed a test of reading readiness to use as the dependent variable in an experiment. He is certain that the children's scores on the test are independent and normally distributed with a variance of $\sigma^2 = 4$, but he does not know the mean of the scores.  
-
+  
 (a) Assume that he wants to test the null hypothesis of H0 : $\mu \leq 5$.  
-  (i) If he has N = 9 independent observations, what is the cut-off sample mean for a significant result at $\alpha = 0.05$?
+i) If he has N = 9 independent observations, what is the cut-off sample mean for a significant result at $\alpha = 0.05$?
 
 ```{r Ex5p2a1}
 # init
@@ -64,18 +67,19 @@ N = 9;
 alpha = 0.05;
 
 # calculate sample statistics
-mu = 5; sdhat = sd/sqrt(N);
+mu = 5;
+sdhat = sd/sqrt(N);
 
 # H0: mu <= 5
 # H1: mu > 5
 # For this problem, we will use a one-tailed test, therefore:
 gamma = alpha;
-cutoff = mu + qnorm(1-gamma)*sdhat
+cutoff = mu + qnorm(1-gamma)*sdhat;
+cutoff
 ```
 
-The cut-off sample mean in this case is `r cutoff`.  
-
-  (ii) Assume he would like to detect an effect if the true mean is, in fact, $\mu = 8$. For i., what is the corresponding "power" of the test to detect a mean of at least $\mu = 8$? In other words, what is the probability of finding a significant result with $\alpha = 0.05$ when $\mu = 8$?  
+**The cut-off sample mean in this case is `r cutoff`.**  
+ii) Assume he would like to detect an effect if the true mean is, in fact, $\mu = 8$. For i., what is the corresponding "power" of the test to detect a mean of at least $\mu = 8$? In other words, what is the probability of finding a significant result with $\alpha = 0.05$ when $\mu = 8$?  
 
 ```{r Ex5p2aii}
 # init
@@ -85,23 +89,55 @@ mu2 = 8;
 beta = pnorm(cutoff,mu2,sdhat); # how much of the true distribution lies below the cutoff
 power = 1 - beta # how much of the true sample distribution lies above the cutoff
 ```
-
-The probability of finding a significant result under these circumstances is `r power`.  
-  (iii) What decision about the null hypothesis would the researcher make if he observed a sample mean of $\bar{x} = 5.5$ or $\bar{x} = 7.5$?
-If the researcher observared $\bar{x} = 5.5$ they would fail to reject the null, and if the researcher observed $\bar{x} = 7.5$ they would reject the null.  
+**The probability of finding a significant result under these circumstances is `r power`.**    
+iii) What decision about the null hypothesis would the researcher make if he observed a sample mean of $\bar{x} = 5.5$ or $\bar{x} = 7.5$?  
+**If the researcher observared $\bar{x} = 5.5$ they would fail to reject the null, and if the researcher observed $\bar{x} = 7.5$ they would reject the null.**  
 (b) Assume that he wishes to test H0 : $\mu = 5$ versus a two-sided alternative of H1 : $\mu \neq 5$ for the sample of N = 9 observations.  
-  (i) What is the relationship of the critical values/rejection region between the two-sided test and the test performed in (a)?  
-  The test performed in (a) was one-sided; it has the same area under the curve as the two-tailed test of the sample $\alpha$, but a larger z-critical value. Therefore, the two-tailed is more critical in any given direction, compared to a one-tailed test of the same alpha. 
-  (ii) When should he prefer to use the critical regions found in (a)? When should he prefer to use the critical regions found in (b)?  
-  He should prefer the critical regions in (a) if his alternative hypothesis includes a specific direction of an effect. The critical regions found in (b) would be useful if direction is not important, just a difference.  
+i) What is the relationship of the critical values/rejection region between the two-sided test and the test performed in (a)?  
+**The test performed in (a) was one-sided; it has the same area under the curve as the two-tailed test of the sample $\alpha$, but a larger z-critical value. Therefore, the two-tailed is more critical in any given direction, compared to a one-tailed test of the same alpha.**  
+ii) When should he prefer to use the critical regions found in (a)? When should he prefer to use the critical regions found in (b)?  
+  **He should prefer the critical regions in (a) if his alternative hypothesis includes a specific direction of an effect. The critical regions found in (b) would be useful if direction is not important, just a difference.**  
+  
 ## Exercise 5.3  
-When talking about sampling distributions you learned that, if X is normally distributed, $X ~ N(\mu,\sigma_{\bar{X}})$. In hypothesis testing, if H0 is true, this means that X
- N(0;  X
-). Remember, 0 is the hypothesized
-population mean under H0, i.e. H0 :  = 0, and  X
-= p
-N .
-Imagine your friend is doing a NHST, testing H0 :  = 5. They draw a sample from a population of scores
-which are normally distributed with  = 5 and  = 12. Your friend draws a sample of size 20 and uses
- = :05.
-(a) 
+When talking about sampling distributions you learned that, if X is normally distributed, $X ~ N(\mu,\sigma_{\bar{X}})$. In hypothesis testing, if H0 is true, this means that $X ~ N(\mu_0,\sigma_{\bar{X}})$. Remember, $\mu_0$ is the hypothesized population mean under H0, i.e. H0 : $\mu = \mu_0$, and $\sigma_X = \frac{\sigma}{\sqrt{N}}$.  
+  
+Imagine your friend is doing a NHST, testing H0 : $\mu$ = 5. They draw a sample from a population of scores which are normally distributed with $\mu$ = 5 and $\sigma$ = 12. Your friend draws a sample of size 20 and uses $\alpha$ = .05.  
+(a) What is the probability that your friend will commit a Type I error?  
+**The probability of committing a Type I error is $\alpha$, or 0.05.**  
+
+(b) What is the probability that your friend will commit a Type II error?  
+**You cannot commit a Type II error, as the null hypothesis is true.**  
+(c) Use a simulation study in R to demonstrate your answer to (a). You should randomly generate a large number of samples from the appropriate distribution (say, 10,000) and for each sample determine whether your friend would have rejected H0. Then calculate in what proportion of the samples your friend would have rejected H0.  
+```{r sim}
+set.seed(8814.4) # set seed for replicability
+
+# Init
+mu = 5;
+sd = 12;
+N = 20;
+alpha = 0.05;
+sdhat = sd/sqrt(N);
+
+# Generate 95% CI as the boundaries for accept/reject
+bounds = c(mu + qnorm(alpha/2)*sdhat, mu + qnorm(1-alpha/2)*sdhat);
+
+# Simulation params
+n_reject = 0; # counter
+n_sims = 10000; # number of samples generated
+
+# Simulation loop
+for (i in 1:n_sims){
+  # Generate a sample from the population, and calculate the mean
+  sample = rnorm(n=N,mean=mu,sd=sd);
+  xhat = mean(sample);
+  xhat
+  # If xhat is out of the CI boundary, add it to the rejection count
+  if (xhat < bounds[1] || xhat >bounds[2]){
+    n_reject = n_reject + 1;
+  }
+}
+# Proportion of rejects
+P_reject = n_reject/n_sims
+P_reject
+```
+**The Type I error rate in the simulation is `r P_reject`, which is approximately $\alpha =$ `r alpha`.**
