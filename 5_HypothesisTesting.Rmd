@@ -2,10 +2,7 @@
 title: "PSY 8814 Assignment 5"
 author: "Rory Flemming"
 date: "October 21, 2018"
-output:
-  word_document: default
-  pdf_document: default
-  html_document: default
+output: word_document #Having issues with latex -> pdf
 ---
 
 ```{r setup, include=FALSE}
@@ -39,8 +36,8 @@ ggplot(data.frame(x),aes(y=x)) + stat_boxplot()+ theme_minimal()
 # We will use a two-tailed hypothesis test.
 # Calculate the CI under null distribution
 gamma = alpha/2;
-H0_low = mu + pnorm(gamma)*sdhat;
-H0_high = mu + pnorm(1-gamma)*sdhat;
+H0_low = mu + qnorm(gamma)*sdhat;
+H0_high = mu + qnorm(1-gamma)*sdhat;
 
 # One way we could test this is whether the sample mean, xhat, is within the 95% CI
 # of the null distribution. If it is, we can accept the null, if not, we reject the null.
@@ -48,7 +45,7 @@ H0_high = mu + pnorm(1-gamma)*sdhat;
 
 # Another way is to get the p-value associated with it's z-score
 z = (xhat - mu)/sdhat;
-pvalue = 1-pnorm(z) # the p-value of sample mean under the null
+pvalue = 1 - pnorm(z) # the p-value of sample mean under the null
 pvalue
 ```
 
