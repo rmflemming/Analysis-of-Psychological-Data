@@ -1,0 +1,107 @@
+---
+title: "PSY 8814 Assignment 5"
+author: "Rory Flemming"
+date: "October 19, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+require(ggplot2)
+```
+
+## Exercise 5.1  
+Jim was interested in testing whether an expensive treatment affected anxiety in a particular population with a mean of $\mu = 22$ and a standard deviation of $\sigma = 6$ on a well-known anxiety scale. After collecting N = 9 individuals, he administered the treatment to each of them, and following treatment, gathered their scores on the anxiety scale. The N = 9 individuals had the following scores on the anxiety scale following
+treatment: 36, 27, 30, 33, 22, 30, 30, 24, 38. Test the research hypothesis that the group who were given the treatment had different scores on the anxiety scale (on average) than the general population. Perform the test using $\alpha = 0.05$. Make sure to check for normality and outliers using graphical and/or numerical methods.  
+
+```{r Ex_5p1}
+set.seed(8814.4) # set seed for replicability
+
+# inits
+mu = 22; sd = 6;
+N = 9;
+x = c(36, 27, 30, 33, 22, 30, 30, 24, 38);
+alpha = .05;
+
+# Calculate sample statistics
+xhat = mean(x); sdhat = sd/sqrt(N);
+
+# Look at the Normality
+ggplot(data.frame(x),aes(sample=x)) + stat_qq() + stat_qq_line() + theme_minimal()
+
+# Look for outliers
+ggplot(data.frame(x),aes(y=x)) + stat_boxplot()+ theme_minimal()
+
+# H0: xhat = mu
+# H1: xhat != mu
+# We will use a two-tailed hypothesis test.
+# Calculate the CI under null distribution
+gamma = alpha/2;
+H0_low = mu + pnorm(gamma)*sdhat;
+H0_high = mu + pnorm(1-gamma)*sdhat;
+
+# One way we could test this is whether the sample mean, xhat, is within the 95% CI
+# of the null distribution. If it is, we can accept the null, if not, we reject the null.
+(xhat >= H0_low && xhat <= H0_high)
+
+# Another way is to get the p-value associated with it's z-score
+z = (xhat - mu)/sdhat;
+pvalue = 1-pnorm(z) # the p-value of sample mean under the null
+```
+
+Using NHST, we would reject the null hypothesis, $\mu_0 = 5$ given the data, $\alpha = 0.05$, and the resulting p =`r pvalue`.  
+
+## Exercise 5.2  
+A researcher has developed a test of reading readiness to use as the dependent variable in an experiment. He is certain that the children's scores on the test are independent and normally distributed with a variance of $\sigma^2 = 4$, but he does not know the mean of the scores.  
+
+(a) Assume that he wants to test the null hypothesis of H0 : $\mu \leq 5$.  
+  (i) If he has N = 9 independent observations, what is the cut-off sample mean for a significant result at $\alpha = 0.05$?
+
+```{r Ex5p2a1}
+# init
+sd = sqrt(4);
+N = 9;
+alpha = 0.05;
+
+# calculate sample statistics
+mu = 5; sdhat = sd/sqrt(N);
+
+# H0: mu <= 5
+# H1: mu > 5
+# For this problem, we will use a one-tailed test, therefore:
+gamma = alpha;
+cutoff = mu + qnorm(1-gamma)*sdhat
+```
+
+The cut-off sample mean in this case is `r cutoff`.  
+
+  (ii) Assume he would like to detect an effect if the true mean is, in fact, $\mu = 8$. For i., what is the corresponding "power" of the test to detect a mean of at least $\mu = 8$? In other words, what is the probability of finding a significant result with $\alpha = 0.05$ when $\mu = 8$?  
+
+```{r Ex5p2aii}
+# init
+mu2 = 8;
+
+# Calculate power by inverting beta:
+beta = pnorm(cutoff,mu2,sdhat); # how much of the true distribution lies below the cutoff
+power = 1 - beta # how much of the true sample distribution lies above the cutoff
+```
+
+The probability of finding a significant result under these circumstances is `r power`.  
+  (iii) What decision about the null hypothesis would the researcher make if he observed a sample mean of $\bar{x} = 5.5$ or $\bar{x} = 7.5$?
+If the researcher observared $\bar{x} = 5.5$ they would fail to reject the null, and if the researcher observed $\bar{x} = 7.5$ they would reject the null.  
+(b) Assume that he wishes to test H0 : $\mu = 5$ versus a two-sided alternative of H1 : $\mu \neq 5$ for the sample of N = 9 observations.  
+  (i) What is the relationship of the critical values/rejection region between the two-sided test and the test performed in (a)?  
+  The test performed in (a) was one-sided; it has the same area under the curve as the two-tailed test of the sample $\alpha$, but a larger z-critical value. Therefore, the two-tailed is more critical in any given direction, compared to a one-tailed test of the same alpha. 
+  (ii) When should he prefer to use the critical regions found in (a)? When should he prefer to use the critical regions found in (b)?  
+  He should prefer the critical regions in (a) if his alternative hypothesis includes a specific direction of an effect. The critical regions found in (b) would be useful if direction is not important, just a difference.  
+## Exercise 5.3  
+When talking about sampling distributions you learned that, if X is normally distributed, $X ~ N(\mu,\sigma_{\bar{X}})$. In hypothesis testing, if H0 is true, this means that X
+ N(0;  X
+). Remember, 0 is the hypothesized
+population mean under H0, i.e. H0 :  = 0, and  X
+= p
+N .
+Imagine your friend is doing a NHST, testing H0 :  = 5. They draw a sample from a population of scores
+which are normally distributed with  = 5 and  = 12. Your friend draws a sample of size 20 and uses
+ = :05.
+(a) 
