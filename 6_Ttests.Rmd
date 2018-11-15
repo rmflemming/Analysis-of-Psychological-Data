@@ -1,0 +1,98 @@
+---
+title: "Homework 6 - T-tests"
+author: "Rory Flemming"
+date: "November 9, 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, tidy.opts=list(width.cutoff=60), tidy=TRUE)
+library(ggplot2)
+library(data.table)
+```
+
+## Exercise 6.1  
+(a) Import data from https://www.uvm.edu/~dhowell/methods8/DataFiles/Ex7-2.dat  - Currently, I am having issues with the kableExtra package latex dependencies, so I will not use kable to generate a table.  
+```{r import_data}
+# Import data and print out stats
+site = 'https://www.uvm.edu/~dhowell/methods8/DataFiles/Ex7-2.dat'
+data = read.table(url(site),header= TRUE)
+summary(data)
+
+# QQ plot
+ggplot(NULL,aes(sample=data$Value)) + stat_qq() + stat_qq_line()
+
+
+# Randomly draw sample of 30
+set.seed(8814.8)
+smpl = sample(data$Value,30)
+summary(smpl)
+ggplot(NULL,aes(sample=smpl)) + stat_qq() + stat_qq_line()
+```
+We see that our sample has very similar statistics between 1st and 3rd quartiles, but is less rich in the more extreme values. Both the population and the sample look to be normally distributed.  
+(b) Now we want to test the null jypothesis that the sample mean is the same as the population mean with $\alpha = 0.05$.  
+(i) The null hypothesis is $\bar{x} = \mu$, the alternative hypothesis is $\bar{x} \neq \mu$. That is, the null hypothesis is that the sample mean is equivalent to the population mean, while the alternative hypothesis is that the sample mean is not equal to the population mean.  
+(ii) We will do a one-sample z-test and one sample t-test:  
+```{r z_t_tests}
+sigma = sd(data$Value); # population std
+N = 30; # sample size
+z = (mean(smpl) - mean(data$Value))/(sigma/sqrt(N))
+t = (mean(smpl) - mean(data$Value))/(sd(smpl)/sqrt(N))
+pnorm(z,0,1)
+pt(t,df=length(smpl)-1)
+```
+The p-value for the z-test is `r pnorm(z,0,1)`, and the p-value for the t-test is `r pt(t,df=length(smpl)-1)`. Both of these tests fail to reject the null hypothesis, that there is not a difference between the population mean and the sample mean.  
+(iii) Next, we will construct the 95% confidence intervals associated with the above tests.  
+```{r z_t_CIs}
+# 95% CI for the z-test
+z_crit = mean(data$Value) + c(1,-1)*qnorm(.025,0,1)*(sigma/sqrt(N))
+z_crit
+
+# 95% CI for t-test
+t_crit = mean(data$Value) + c(1,-1)*qt(.025,df=length(smpl)-1)*(sd(smpl)/sqrt(N))
+t_crit
+```
+The 95% CI for the z-test is (`r z_crit[1]`,`r z_crit[2]`), and the 95% CI for the t-test is (`r t_crit[1]`,`r t_crit[2]`). These intervals are similar, only the z-test CI is wider than the t-test CI.  
+(iv) Having access to the population variance, the z-test should be preferred. This is because the t-test estimates the population variance anyways, and this estimate allows room for error. If you have access to the population variance, then that is better to use than an estimate based on your single sample (as in the t-test). 
+
+## Exercise 6.2
+A psychologist developed a new inventory to measure depression with a mean of $\mu = 55$ calibrated on a large number of normal individuals, with $\sigma = 15$. She wants to determine whether the test is sensitive at detecting depressed individuals. Using a randomly selected sample of N = 40 clinically depressed individuals, she hypothesizes that a truly depressed population should score higher on the inventory than the general population. The data are contained in the file Ex62_data.csv.  
+(a) The Null hypothesis is: $\mu_D \leq \mu$, depressed individuals score on average less than or equal to the non-depressed population on the test. The Alternative hypothesis is: $\mu_D > \mu$, depressed individuals score higher than the non-depressed population on the test.  
+(b)  
+```{r ex62_data}
+# Import data
+path = getwd()
+dat = read.table(paste(path,'/Ex62_data',sep=''),TRUE,col.names = c("x","y"),sep = ",")
+head(dat)
+# Histogram
+ggplot(NULL,aes(x=dat$y)) + geom_histogram(bins=10) + labs(x='Values',y='Count',title='Depressed Sample Scores')
+
+#QQ Plot
+ggplot(NULL,aes(sample=dat$y)) + stat_qq() + stat_qq_line()
+```
+It appears that the data is normally distributed.  
+(c) 
+```{r ex62_ztest}
+alpha = .01;
+mu = 55; sigma = 15; # population statistics
+N=40; # sample size
+
+# T-test
+t = (mean(dat$y) - mu)/(sd(dat$y)/sqrt(N))
+pval = pt(t, df = N-1, lower.tail = FALSE)
+pval > alpha # compare pvalue of t-test to alpha 
+
+# Compute effect size
+ES = (mean(dat$y) - mu)/sd(dat$y)
+ES
+```
+The p-value for our t-test is `r pval`. So, we can reject the null hypothesis. The effect size is `r ES`. Given the information in (b), we can say that our assumptions of normality are met, and we can assume that independent samples assumption is met due to the random selection of our population.  
+(d) Construct 99% z- and t-based CIs for these data. 
+```{r ex62_CIs}
+t_CI = mean(dat$y) + c(1,-1)*qt(alpha/2,df=N-1)*sd(dat$y)/sqrt(N)
+z_CI = mean(dat$y) + c(1,-1)*qnorm(alpha/2)*sigma/sqrt(N)
+t_CI
+z_CI
+```
+The t-based 99% confidence interval is wider (more conservative).  
+(e) I would interpret the results of the test: At $\alpha = 0.01$, we can reject the null hypothesis that $\mu_D \leq \mu$. However, $\mu=55$ is still contained within the 99% CI of the sample mean: [`r t_CI[1]`,`r t_CI[2]`]. The Cohen's d effect size calculated in this study is `r ES`. While the inventory is shown to be effective in this study, it cannot be fully ruled out that there is no difference at the 99% confidence level.

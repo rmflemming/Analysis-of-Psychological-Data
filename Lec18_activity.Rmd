@@ -1,0 +1,62 @@
+---
+title: "Lecture 18 Activity"
+author: "Rory Flemming"
+date: "November 13, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+opts_chunk$set(tidy_ops=list(width.cutoff=60),tidy=TRUE)
+library(dplyr)
+library(ggplot2)
+```
+
+Import data:  
+```{r import}
+data=read.csv('sleepdata.csv');
+summary(data)
+```
+Next, calculate some simple statistics:
+```{r smpl_stats}
+mu = mean(data$rt);
+alphas = c(); #init
+i=0; #counter
+for (k in levels(data$group)){
+  i = i+1;
+  alphas = c(alphas, mu - mean(data$rt[data$group==k]))
+  sigma2_k = length(data$group[data$group==k])*(alphas[i]^2);
+}
+mu
+alphas
+residuals = data$rt - mu + alphas[data$group]
+residuals
+```
+Now let's look at the residuals:
+```{r resids}
+ggplot(NULL,aes(x=1:length(data$rt),y = residuals)) + geom_point() + theme_minimal()
+summary(residuals)
+```
+Residuals look alright. LEt's get the MSB (mean-squared error between groups):  
+```{r MSB}
+# MSB = var(resid)^2 + sum_k(n_k*alpha_k^2)/K-1
+K=length(levels(data$group));
+MSB = var(residuals) + sum(sigma2_k)/(K-1)
+MSB
+```
+Let's look at the ANOVA of the data:
+```{r anova}
+aov.data = aov(rt~group,data)
+summary(aov.data)
+```
+And now a linear (structural) model:
+```{r lm}
+lm.data = lm(rt~group, data)
+summary(lm.data)
+```
+## Questions  
+1. What estimates/statistics are the same in both outputs?  
+*Both output F-statistics*
+2. What is the intercept term equal to in the second output?  
+The intercept give the smallest 
